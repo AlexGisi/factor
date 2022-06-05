@@ -7,6 +7,8 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <functional>
+#include <queue>
 #include "Factorer.h"
 
 Factorer::Factorer(ull num) : num(num) { }
@@ -33,7 +35,8 @@ ull Factorer::gcd(ull a, ull b) {
  * Probabilistically check if num prime using the Miller-Rabin test.
  * n: number of potential witnesses to test.
  */
-bool Factorer::is_prime(int n) const {
+bool Factorer::is_prime(ull n) const {
+    if (num == 2) return true;
     if (num % 2 == 0) return false;
 
     ull m = 0, q = num-1;
@@ -65,11 +68,8 @@ bool Factorer::is_prime(int n) const {
     }
 
     for(int i=0; i < n; i++)
-        if(is_witness[i]) {
-            std::cout << "Witness for " << num << ": " << pot_witnesses[i] << std::endl;
+        if(is_witness[i])
             return false;
-        }
-
 
     return true;  // Most likely prime.
 }
@@ -90,4 +90,43 @@ ull Factorer::fast_exp(ull a, ull x, ull n) {
         res = (res * a) % n;
     }
     return res;
+}
+
+ull Factorer::naive() const {
+    for(ull i=2; i <= (ull) sqrt(num); i++) {
+        if(num % i == 0)
+            return i;
+    }
+    throw std::runtime_error("No factor found.");
+}
+
+std::vector<ull> Factorer::prime_factors(FactorizerFn f) const {
+    std::vector<ull> prime_factors;
+    std::queue<ull> q;
+
+    q.push(num);
+    while (!q.empty()) {
+        Factorer factorer(q.front());
+        if (factorer.is_prime()) {
+            prime_factors.push_back(q.front());
+        } else {
+            std::vector<ull> decomp = factors(f, q.front());
+            q.push(decomp[0]);
+            q.push(decomp[1]);
+        }
+        q.pop();
+    }
+
+    return prime_factors;
+}
+
+std::vector<ull> Factorer::factors(Factorer::FactorizerFn f, ull n) {
+    std::vector<ull> factors;
+
+    ull fac = std::invoke(f, Factorer(n));
+    ull other = n / fac;
+    factors.push_back(fac);
+    factors.push_back(other);
+
+    return factors;
 }
