@@ -84,6 +84,9 @@ ull Factorer::rand_range(ull min, ull max) {
     return distr(generator);
 }
 
+/*
+ * Efficiently exponentiate modulo some integer n.
+ */
 ull Factorer::fast_exp(ull a, ull x, ull n) {
     ull res = a;
     for(int i = 0; i < x-1; i++) {
@@ -92,6 +95,9 @@ ull Factorer::fast_exp(ull a, ull x, ull n) {
     return res;
 }
 
+/*
+ * The most naive way to find a factor.
+ */
 ull Factorer::naive() const {
     for(ull i=2; i <= (ull) sqrt(num); i++) {
         if(num % i == 0)
@@ -100,6 +106,10 @@ ull Factorer::naive() const {
     throw std::runtime_error("No factor found.");
 }
 
+/*
+ * Breadth-first search the tree of factors, finding factors at each fork with the member function f
+ * which returns a factor.
+ */
 std::vector<ull> Factorer::prime_factors(FactorizerFn f) const {
     std::vector<ull> prime_factors;
     std::queue<ull> q;
@@ -120,6 +130,9 @@ std::vector<ull> Factorer::prime_factors(FactorizerFn f) const {
     return prime_factors;
 }
 
+/*
+ * Find two factors of a number n using the factorizing function f.
+ */
 std::vector<ull> Factorer::factors(Factorer::FactorizerFn f, ull n) {
     std::vector<ull> factors;
 
