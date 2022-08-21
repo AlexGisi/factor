@@ -26,7 +26,7 @@ mpz_class Factorer::gcd(mpz_class a, mpz_class b) {
         a = temp;
     }
 
-    mpz_class r = 0, old_r;
+    mpz_class r = a, old_r;
     do {
         old_r = r;
         r = b % a;
@@ -96,7 +96,6 @@ ull Factorer::rand_range(ull min, ull max) {
 
 /*
  * Uniform random generation on [min, max].
- * TODO: Consider re-using the random device.
  */
 mpz_class Factorer::rand_range(const mpz_class& min, const mpz_class& max) {
     mpz_t ret;
@@ -122,7 +121,7 @@ mpz_class Factorer::rand_range(const mpz_class& min, const mpz_class& max) {
 }
 
 /*
- * Efficiently exponentiate modulo some integer n. GMP can do this for us.
+ * Efficiently exponentiate modulo some integer n.
  */
 mpz_class Factorer::fast_exp(const mpz_class& a, const unsigned long x, const mpz_class& m) {
     mpz_t ret;
@@ -215,20 +214,19 @@ mpz_class Factorer::pollard() const {
 
     // Choose a in range (1, num).
     a = rand_range(2, num);
-    std::cout << a << std::endl;
 
-    // We could get *very* lucky.
+    // We could get *very* lucky and choose a divisor of num as a.
     if (gcd(a, num) != 1) return gcd(a, num);
 
     mpz_class last_a = a;
     for (i = 1; ; i++) {
         mpz_class a_i = fast_exp(last_a, i, num);
-        std::cout << a_i << std::endl;
+        // std::cout << a_i << std::endl;
 
         mpz_class g = gcd(a_i - 1, num);
         if (g != 1 && g != num)
             return g;
-        else if (g == 1 || g == num)
+        else if (g == num)
             throw std::runtime_error("No factor found");
     }
 }
@@ -239,6 +237,9 @@ mpz_class Factorer::big_power(unsigned long base, unsigned long exp) {
     mpz_class ret_class;
 
     mpz_init(ret);
+    mpz_init(mpz_base);
+    mpz_set_ui(mpz_base, base);
+
     mpz_pow_ui(ret, mpz_base, exp);
     ret_class = mpz_class (ret);
 
