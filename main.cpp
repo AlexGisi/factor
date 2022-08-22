@@ -21,7 +21,7 @@ using namespace chrono;
 std::vector<mpz_class> gen_number_set() {
     vector<mpz_class> set;
     int digit_min = 5;
-    int digit_max = 30;
+    int digit_max = 50;
 
     for (int i = digit_min; i <= digit_max; ) {
         mpz_class candidate = Factorer::rand_digits(i);
@@ -44,18 +44,18 @@ void print_number_set() {
 void time_fac_func(Factorer& factorer, mpz_class (Factorer::*function)() const) {
     auto start = high_resolution_clock::now();
     cout << (factorer.*function)();
-    cout << ' ';
+    cout << '\t';
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
 
-    cout << duration.count() << ' ';
+    cout << duration.count() << '\t';
 }
 
 void profile(const vector<mpz_class>& nums) {
     cout << "Number\tNaive Factor\tNaive microseconds\tPollard Factor\tPollard microseconds" << endl;
     for(const mpz_class& n : nums) {
-        cout << n << ' ';
+        cout << n << '\t';
         Factorer fac(n);
         time_fac_func(fac, &Factorer::naive);
         time_fac_func(fac, &Factorer::pollard);
