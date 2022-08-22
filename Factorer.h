@@ -21,10 +21,12 @@ public:
     [[nodiscard]] bool is_prime(int n = 5) const;
 
     static mpz_class rand_range(const mpz_class& min, const mpz_class& max);
+    static mpz_class rand_digits(int n);
     static ull rand_range(ull min, ull max);
 
-    static mpz_class fast_exp(const mpz_class& a, unsigned long x, const mpz_class& m);
-    static mpz_class fast_exp_mpz(const mpz_class& a, const mpz_class& x, const mpz_class& m);
+    static mpz_class fast_exp(const mpz_class& a, unsigned long x);
+    static mpz_class fast_expm(const mpz_class& a, unsigned long x, const mpz_class& m);
+    static mpz_class fast_expm_mpz(const mpz_class& a, const mpz_class& x, const mpz_class& m);
 
     [[nodiscard]] std::vector<mpz_class> prime_factors(FactorizerFn f) const;
 

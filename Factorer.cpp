@@ -4,10 +4,9 @@
 
 #include <stdexcept>
 #include <random>
-#include <utility>
 #include <vector>
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <functional>
 #include <queue>
 #include "Factorer.h"
@@ -52,9 +51,6 @@ bool Factorer::is_prime(int n) const {
         m++;
     } while (q % 2 == 0);
 
-    if(!q.fits_uint_p())
-        throw std::runtime_error("q did not fit uint");
-
     // Choose witnesses uniformly from (1, n).
     mpz_class* pot_witnesses = new mpz_class [n];
     bool* is_witness = new bool[n];
@@ -65,7 +61,7 @@ bool Factorer::is_prime(int n) const {
 
     // Test potential witnesses.
     for(int i = 0; i < n; i++) {
-        if(fast_exp(pot_witnesses[i], q.get_ui(), num) == 1) {
+        if(fast_expm_mpz(pot_witnesses[i], q, num) == 1) {
             is_witness[i] = false;
         }
     }
@@ -73,7 +69,7 @@ bool Factorer::is_prime(int n) const {
     for(int i = 0; i < m; i++) {
         mpz_class n_i = (big_power(2, i) * q ) % num;
         for(int j = 0; j < n; j++)
-            if( fast_exp_mpz(pot_witnesses[j], n_i, num) == num-1)
+            if(fast_expm_mpz(pot_witnesses[j], n_i, num) == num - 1)
                 is_witness[j] = false;
     }
 
@@ -121,9 +117,25 @@ mpz_class Factorer::rand_range(const mpz_class& min, const mpz_class& max) {
 }
 
 /*
+ * Efficiently exponentiate some integer n.
+ */
+mpz_class Factorer::fast_exp(const mpz_class& a, const unsigned long x) {
+    mpz_t ret;
+    mpz_class ret_class;
+
+    mpz_init(ret);
+    mpz_pow_ui(ret, a.get_mpz_t(), x);
+
+    ret_class = mpz_class (ret);
+
+    mpz_clear(ret);
+    return ret_class;
+}
+
+/*
  * Efficiently exponentiate modulo some integer n.
  */
-mpz_class Factorer::fast_exp(const mpz_class& a, const unsigned long x, const mpz_class& m) {
+mpz_class Factorer::fast_expm(const mpz_class& a, const unsigned long x, const mpz_class& m) {
     mpz_t ret;
     mpz_class ret_class;
 
@@ -139,7 +151,7 @@ mpz_class Factorer::fast_exp(const mpz_class& a, const unsigned long x, const mp
 /*
  * Efficiently exponentiate modulo some integer n. GMP can do this for us.
  */
-mpz_class Factorer::fast_exp_mpz(const mpz_class& a, const mpz_class& x, const mpz_class& m) {
+mpz_class Factorer::fast_expm_mpz(const mpz_class& a, const mpz_class& x, const mpz_class& m) {
     mpz_t ret;
     mpz_class ret_class;
 
@@ -158,7 +170,7 @@ mpz_class Factorer::fast_exp_mpz(const mpz_class& a, const mpz_class& x, const m
  */
 mpz_class Factorer::naive() const {
     mpz_class i = mpz_class (2);
-    mpz_class max_factor = sqrt(i);
+    mpz_class max_factor = sqrt(num);
     for(i=2; i <= max_factor; i++) {
         if(num % i == 0)
             return i;
@@ -220,8 +232,7 @@ mpz_class Factorer::pollard() const {
 
     mpz_class last_a = a;
     for (i = 1; ; i++) {
-        mpz_class a_i = fast_exp(last_a, i, num);
-        // std::cout << a_i << std::endl;
+        mpz_class a_i = fast_expm(last_a, i, num);
 
         mpz_class g = gcd(a_i - 1, num);
         if (g != 1 && g != num)
@@ -246,4 +257,13 @@ mpz_class Factorer::big_power(unsigned long base, unsigned long exp) {
     mpz_clear(ret);
 
     return ret_class;
+}
+
+/*
+ * Generate random integer with n digits.
+ */
+mpz_class Factorer::rand_digits(int n) {
+    mpz_class min(fast_exp(10, n-1));
+    mpz_class max((min*10) - 1);
+    return rand_range(min, max);
 }
